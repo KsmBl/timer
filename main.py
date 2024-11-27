@@ -60,7 +60,6 @@ def newTimer(name, length):
 	# test if name already exists
 	# TODO
 
-	"""
 	pid = os.fork()
 
 	if pid > 0:
@@ -77,7 +76,6 @@ def newTimer(name, length):
 	os.dup2(si.fileno(), sys.stdin.fileno())
 	os.dup2(so.fileno(), sys.stdout.fileno())
 	os.dup2(se.fileno(), sys.stderr.fileno())
-	"""
 
 	file_name = f"/tmp/timer/{name}.tmr"
 	f = open(file_name, 'w+')
