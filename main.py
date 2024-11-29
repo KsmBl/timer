@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from playsound import playsound
 from time import sleep, time
@@ -9,6 +9,9 @@ ALARM_FILE = "/path/to/your/mp3/alarm.mp3"
 HELP_MESSAGE = "this is a helpmessage\nrun program again" # TODO
 
 def main():
+	if not os.path.exists("/tmp/timer/"):
+		os.makedirs("/tmp/timer/")
+
 	argv = sys.argv
 	if len(argv) <= 1:
 		print(HELP_MESSAGE)
