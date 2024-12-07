@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 from playsound import playsound
 from time import sleep, time
@@ -6,7 +6,7 @@ import os
 import sys
 
 ALARM_FILE = "/path/to/your/mp3/alarm.mp3"
-HELP_MESSAGE = "this is a helpmessage\nrun program again" # TODO
+HELP_MESSAGE = "usage:\n  timer new <timer_name> <time>\n  timer new pizza 15:00 (to create a timer which needs 15 minutes)\n  timer new pizza 900 (to create a timer which needs 900 seconds / 15 minutes)\n\n  timer view <timer_name>\n  timer view pizza (to see how much time the pizza timer needs left)\n\n  timer pause <timer_name>\n  timer pause pizza (to pause the timer named pizza)\n\n  timer continue <timer_name>\n  timer continue pizza (to continue the timer named pizza)\n\n  timer stop <timer_name>\n  timer stop pizza (delete the timer named pizza)\n\n  timer list (to list all active timers)"
 
 def main():
 	if not os.path.exists("/tmp/timer/"):
@@ -55,18 +55,21 @@ def main():
 	elif argv[1] == "stop":
 		stopTimer(argv[2])
 	elif argv[1] == "list":
-		listTimers()
+		listTimers("normal")
 	else:
 		print(HELP_MESSAGE)
 
 def newTimer(name, length):
-	# test if name already exists
-	# TODO
+	usedTimers = listTimers("array")
+
+	if name + ".tmr" in usedTimers:
+		print("timer name already used")
+		return
 
 	pid = os.fork()
 
 	if pid > 0:
-		print("timer set")
+		print(f"timer set to {length} seconds")
 		sys.exit(0)
 
 	sys.stdout.flush()
@@ -88,6 +91,12 @@ def newTimer(name, length):
 	timer(name, length)
 
 def pauseTimer(name):
+	usedTimers = listTimers("array")
+
+	if not name + ".tmr" in usedTimers:
+		print("timer name does not exist")
+		return
+
 	filePath = f"/tmp/timer/{name}.tmr"
 	f = open(filePath, 'w+')
 	f.write("pause")
@@ -96,6 +105,12 @@ def pauseTimer(name):
 	print("pause timer")
 
 def continueTimer(name):
+	usedTimers = listTimers("array")
+
+	if not name + ".tmr" in usedTimers:
+		print("timer name does not exist")
+		return
+
 	filePath = f"/tmp/timer/{name}.tmr"
 	f = open(filePath, 'w+')
 	f.write("continue")
@@ -104,6 +119,12 @@ def continueTimer(name):
 	print("pause timer")
 
 def stopTimer(name):
+	usedTimers = listTimers("array")
+
+	if not name + ".tmr" in usedTimers:
+		print("timer name does not exist")
+		return
+
 	filePath = f"/tmp/timer/{name}.tmr"
 	f = open(filePath, 'w+')
 	f.write("stop")
@@ -122,15 +143,31 @@ def _stopTimer(name, playSound):
 	sys.exit(0)
 
 def viewTimer(name):
+	usedTimers = listTimers("array")
+
+	if not name + ".tmr" in usedTimers:
+		print("timer name does not exist")
+		return
+
 	filePath = f"/tmp/timer/{name}.tmr"
 	f = open(filePath, "r")
 	_timeLeft = f.read()
 	f.close()
 	print(f"timer '{name}' needs {_timeLeft} seconds left")
 
-def listTimers():
-	# using dir instead of ls for better compatibility with Windows. But the program is written on and for (Debian 12) Linux
-	os.system("dir /tmp/timer/")
+def listTimers(_type):
+	allTimers = [
+		f for f in os.listdir(os.path.join("/tmp/timer/"))
+		if os.path.isfile(os.path.join("/tmp/timer/", f))
+	]
+
+	if _type == "normal":
+		for i in allTimers:
+			print(os.path.splitext(i)[0])
+			return
+
+	elif _type == "array":
+		return allTimers
 
 def timer(name, length):
 	currentTimestamp = int(time())
